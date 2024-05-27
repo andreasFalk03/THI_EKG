@@ -1,6 +1,27 @@
 #define BUFFERSIZE 500
 #define INTERVAL 20
 
+#define RESETN P0_18
+#define LO_PLUS P0_13
+#define LO_MINUS P0_14
+#define LEDR P0_15
+#define LEDG P0_16
+#define LEDB P0_24
+#define GPIO7 P0_25
+#define GPIO8 P1_0
+#define GPIO16_A P0_3
+#define GPIO17_A P0_28
+#define SCL P0_2
+#define SDA P0_31
+#define STAT P1_12
+#define ALRT P0_29
+#define REFOUT P0_30
+#define SIGNAL_OUT P0_4
+#define SPI_MISO P0_21
+#define SPI_MOSI P0_20
+#define SPI_CS P0_17
+#define SPI_CLK P0_19
+
 short data_buffer[BUFFERSIZE];
 float correlation_buffer[BUFFERSIZE];
 
@@ -15,7 +36,8 @@ int z = 0;
 void setup() {
   
 Serial.begin(9600);
-pinMode(A0,INPUT); //Analogsignal EKG Platine
+pinMode(SIGNAL_OUT,INPUT); //Analogsignal EKG Platine
+
 
 }
 
@@ -27,8 +49,8 @@ unsigned long currentMillis = millis();
 if (currentMillis - previousMillis >= INTERVAL) 
 {
   previousMillis = currentMillis;
-  data_buffer[z] = analogRead(A0);
-//  Serial.println(data_buffer[z]);
+  data_buffer[z] = analogRead(SIGNAL_OUT);
+  Serial.println(data_buffer[z]);
   z = (z+1) % BUFFERSIZE; 
 }
 
@@ -54,7 +76,7 @@ if (currentMillis - previousMillis >= INTERVAL)
     
    for(int i = 0; i<250; i++)
   {
-    Serial.print(data_buffer[i]); Serial.print(";"); Serial.print(correlation_buffer[i]);Serial.print(";"); Serial.println(BPM);
+    //Serial.print(data_buffer[i]); Serial.print(";"); Serial.print(correlation_buffer[i]);Serial.print(";"); Serial.println(BPM);
     //Serial.println(data_buffer[i]); //Serial.print(",");
   }
 
