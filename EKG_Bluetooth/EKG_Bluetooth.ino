@@ -114,11 +114,9 @@ void loop() {
     {
       previousMillis = currentMillis;
       data_buffer[z] = analogRead(SIGNAL_OUT);
-      //  Serial.println(data_buffer[z]);
       z = (z + 1) % BUFFERSIZE;  //Ringbuffer
             if (central.connected()) {  // ---- Bluetooth -----------------
-        Signal.writeValue(data_buffer[z]);
-      }
+                Signal.writeValue(data_buffer[z]); }
     }
 
     if (z == BUFFERSIZE - 1)  //Wenn Ringbuffer voll
@@ -128,7 +126,6 @@ void loop() {
 
       signalprocessing();  //Ableitungs- und Quadratischen Buffer berechnen
 
-
       int peak_buffer[2] = { 0, 0 };
       int peak_count = 0;
       short peak_gefunden[BUFFERSIZE] = { 0 };
@@ -137,7 +134,6 @@ void loop() {
       {
         long absolute = abs(q_buffer[p]);
 
-        //Serial.print(absolute); Serial.print(";"); Serial.print(q_buffer[p]); Serial.print(";");
 
         if (absolute > QTHRESHOLD) {
           peak_gefunden[p] = 1000;
@@ -165,7 +161,25 @@ void loop() {
         battery.writeValue(ladestand);
       }
 
-      for (int i = 0; i < BUFFERSIZE; i++)  //Messwertausgabe
+    }  //if Ringbuffer voll
+  }
+}  //loop
+
+
+void signalprocessing() {
+  for (int i = 0; i < BUFFERSIZE - 1; i++) {
+    derivation_buffer[i] = data_buffer[i + 1] - data_buffer[i];  //Ableitung der Messwerte berechnen
+
+    long derivationsquare = derivation_buffer[i] * derivation_buffer[i] * QFAKTORA;  //Quadratische Verstärkung der Ableitung mit Verstärkungsfaktor
+    long qfactor = derivationsquare / (QFAKTORB * QFAKTORB);                         //Teilen, durch zweiten Faktor
+
+    q_buffer[i] = derivation_buffer[i] * qfactor;  //Buffer für Quadratische Verstärkung
+  }
+}
+
+void messwertausgabe()
+{
+for (int i = 0; i < BUFFERSIZE; i++)  //Messwertausgabe
       {
 
         Serial.print(data_buffer[i]);
@@ -184,23 +198,7 @@ void loop() {
         Serial.print(";");
         Serial.println(BPM);
       }
-
-    }  //if Ringbuffer voll
-  }
-}  //loop
-
-
-void signalprocessing() {
-  for (int i = 0; i < BUFFERSIZE - 1; i++) {
-    derivation_buffer[i] = data_buffer[i + 1] - data_buffer[i];  //Ableitung der Messwerte berechnen
-
-    long derivationsquare = derivation_buffer[i] * derivation_buffer[i] * QFAKTORA;  //Quadratische Verstärkung der Ableitung mit Verstärkungsfaktor
-    long qfactor = derivationsquare / (QFAKTORB * QFAKTORB);                         //Teilen, durch zweiten Faktor
-
-    q_buffer[i] = derivation_buffer[i] * qfactor;  //Buffer für Quadratische Verstärkung
-  }
 }
-
 
 
 //Serial.print(derivation_buffer[i]);
