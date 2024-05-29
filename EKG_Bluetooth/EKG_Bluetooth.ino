@@ -1,5 +1,5 @@
-#define BUFFERSIZE 500  //Anzahl Messwerte für BPM Berechnung
-#define INTERVAL 20     //Sample Interval
+#define BUFFERSIZE 300  //Anzahl Messwerte für BPM Berechnung
+#define INTERVAL 10     //Sample Interval
 #define QFAKTORA 100    //Verstärkungsfaktor
 #define QFAKTORB 300
 #define QTHRESHOLD 1000  //Schwelle für Peakdetektion
@@ -27,6 +27,8 @@
 
 // ---- Bluetooth -----------------
 #include <ArduinoBLE.h>
+#include "MAX17048.h"
+MAX17048 pwr_mgmt;
 
 BLEService bleService("4a30d5ac-1d36-11ef-9262-0242ac120002");  // Bluetooth® Low Energy LED Service
 
@@ -53,8 +55,13 @@ void setup() {
   Serial.begin(9600);
   pinMode(SIGNAL_OUT, INPUT);  //Analogsignal EKG Platine
   pinMode(GPIO8, OUTPUT);
+  pinMode(LEDR, OUTPUT);
+  pinMode(LEDG, OUTPUT);
+  pinMode(LEDB, OUTPUT);
+  pinMode(STAT,INPUT);
   digitalWrite(GPIO8, HIGH);
-
+   Wire.begin();
+   pwr_mgmt.attatch(Wire);
   // ---- Bluetooth -----------------
   if (!BLE.begin()) {
     Serial.println("starting Bluetooth® Low Energy module failed!");
@@ -87,7 +94,20 @@ void loop() {
   BLEDevice central = BLE.central();  //Bluetooth
 
   unsigned long currentMillis = millis();
+  if(pwr_mgmt.percent()< 20){
+     digitalWrite(LEDR,LOW);
+  digitalWrite(LEDB,HIGH);
+  digitalWrite(LEDG,HIGH);
+  }
+  else{ digitalWrite(LEDB,LOW);
+  digitalWrite(LEDR,HIGH);
+  digitalWrite(LEDG,HIGH);}
 
+  if (digitalRead(STAT) == HIGH){
+    digitalWrite(LEDB,HIGH);
+  digitalWrite(LEDR,LOW);
+  digitalWrite(LEDG,HIGH);}
+  
   if (central) {
     if (currentMillis - previousMillis >= INTERVAL)  //Sampleinterval einstellen
     {
