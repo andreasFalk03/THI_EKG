@@ -1,6 +1,6 @@
 #define BUFFERSIZE 500
 #define INTERVAL 20
-
+//Pin - Definitions
 #define RESETN P0_18
 #define LO_PLUS P0_13
 #define LO_MINUS P0_14
@@ -22,8 +22,8 @@
 #define SPI_CS P0_17
 #define SPI_CLK P0_19
 
-short data_buffer[BUFFERSIZE];
-float correlation_buffer[BUFFERSIZE];
+short data_buffer[BUFFERSIZE]; //Speichert die unverarbeiteten EKG Daten
+float correlation_buffer[BUFFERSIZE]; // Beinhaltet die Werte der Autocorrelation
 
 unsigned int timestamp = 0;
 unsigned int last_timestamp = 0;
@@ -44,13 +44,13 @@ pinMode(SIGNAL_OUT,INPUT); //Analogsignal EKG Platine
 
 void loop() {
 
-unsigned long currentMillis = millis();
+unsigned long currentMillis = millis(); //get current time sind Arudiuno started running
 
-if (currentMillis - previousMillis >= INTERVAL) 
+if (currentMillis - previousMillis >= INTERVAL) // check if Interval has passed since laste check
 {
-  previousMillis = currentMillis;
-  data_buffer[z] = analogRead(SIGNAL_OUT);
-  Serial.println(data_buffer[z]);
+  previousMillis = currentMillis; // reset timer for next interval
+  data_buffer[z] = analogRead(SIGNAL_OUT); // read signal and store to data_buffer
+  Serial.println(data_buffer[z]);// print out raw ECG data to serial monitor
   z = (z+1) % BUFFERSIZE; 
 }
 
@@ -105,13 +105,13 @@ void autocorrelation (short * x, int mean, float * r, unsigned int len, unsigned
 {
   //x: array der Sensordaten
   //r: array mit Speicherplatz für Ergebnis
-  //mean: Mittelwert der Sensordaten
+  //mean: Mittelwert der Sensordaten notwendig um DC Komponente des Signals zu entfernen
   //len: Anzahl der Arrayeinträge des Sensorsignals s
   
  for (int t = 0; t < len / 2; t ++)
  {
    int n = 0; // Numerator
-   int d = 0; // Denominator
+   int d = 0; // Denominator not wendig um das Signal zu normalisieren und werte von -1 bis 1 zu erhalten
    for (int i = 0; i < len; i ++)
    {
      int xim = x[(i + startindex) % len] - mean;
