@@ -110,10 +110,10 @@ void loop() {
   else{i++;}
   
   if (central) {
-    if (currentMillis - previousMillis >= INTERVAL)  //Sampleinterval einstellen
+    if (currentMillis - previousMillis >= INTERVAL)  //Sampleintervall (Interval)
     {
       previousMillis = currentMillis;
-      data_buffer[z] = analogRead(SIGNAL_OUT);
+      data_buffer[z] = analogRead(SIGNAL_OUT); //Daten einlesen
       z = (z + 1) % BUFFERSIZE;  //Ringbuffer
             if (central.connected()) {  // ---- Bluetooth -----------------
                 Signal.writeValue(data_buffer[z]); }
@@ -134,7 +134,6 @@ void loop() {
       {
         long absolute = abs(q_buffer[p]);
 
-
         if (absolute > QTHRESHOLD) {
           peak_gefunden[p] = 1000;
           peak_buffer[peak_count] = p;
@@ -145,8 +144,6 @@ void loop() {
         else {
           peak_gefunden[p] = 0;
         }
-
-        //timestamp = millis();
       }
 
 
@@ -199,11 +196,3 @@ for (int i = 0; i < BUFFERSIZE; i++)  //Messwertausgabe
         Serial.println(BPM);
       }
 }
-
-
-//Serial.print(derivation_buffer[i]);
-//Serial.print(" ");
-//Serial.print(derivationsquare); Serial.print(" ");  Serial.print(qfactor); Serial.print(" ");
-//Serial.print(q_buffer[i]);
-//Serial.print( ( (float) derivation_buffer[i] / QFAKTORB) );
-//Serial.println(" ");
