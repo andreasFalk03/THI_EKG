@@ -110,53 +110,23 @@ void loop() {
   else{i++;}
   
   if (central) {
-    if (currentMillis - previousMillis >= INTERVAL)  //Sampleintervall (Interval)
+    if (currentMillis - previousMillis >= INTERVAL)  //Sampleintervall einhalten
     {
       previousMillis = currentMillis;
       data_buffer[z] = analogRead(SIGNAL_OUT); //Daten einlesen
       z = (z + 1) % BUFFERSIZE;  //Ringbuffer
             if (central.connected()) {  // ---- Bluetooth -----------------
                 Signal.writeValue(data_buffer[z]); }
-    }
+    }}
 
     if (z == BUFFERSIZE - 1)  //Wenn Ringbuffer voll
     {
-      last_timestamp = timestamp;  //Zeitmessung, wie lange füllen des Buffers gedauert hat
+      last_timestamp = timestamp;  //Zeitmessung, wie lange füllen des Buffers gedauert hat beenden
       timestamp = millis();
 
       signalprocessing();  //Ableitungs- und Quadratischen Buffer berechnen
 
-      int peak_buffer[2] = { 0, 0 };
-      int peak_count = 0;
-      short peak_gefunden[BUFFERSIZE] = { 0 };
-
-      for (int p = 0; p < BUFFERSIZE && peak_count <= 1; p++)  //wenn 2 Peaks gefunden oder Buffer vorbei hört es auf
-      {
-        long absolute = abs(q_buffer[p]);
-
-        if (absolute > QTHRESHOLD) {
-          peak_gefunden[p] = 1000;
-          peak_buffer[peak_count] = p;
-          peak_count++;
-          p = p + 8;  //Refraktärzeit, um Peak nicht doppelt zu erkennen
-        }
-
-        else {
-          peak_gefunden[p] = 0;
-        }
-      }
-
-
-      float T = (((timestamp - last_timestamp) * (peak_buffer[1] - peak_buffer[0])) / BUFFERSIZE);  //Periodendauer zwischen zwei Herzschlägen berechnen
-
-      if (T != 0) {
-        BPM = 60000.0 / T;  //Beats per minute berechnen
-      }
-
-      if (central.connected()) {  // ---- Bluetooth -----------------
-        BPM_blue.writeValue(BPM);
-        battery.writeValue(ladestand);
-      }
+      peakdetection_and_BPM(); //Peaks detektieren und BPM berechnen
 
     }  //if Ringbuffer voll
   }
@@ -174,25 +144,42 @@ void signalprocessing() {
   }
 }
 
-void messwertausgabe()
-{
-for (int i = 0; i < BUFFERSIZE; i++)  //Messwertausgabe
-      {
 
-        Serial.print(data_buffer[i]);
-        Serial.print(";");
-        Serial.print(derivation_buffer[i]);
-        Serial.print(";");
-        Serial.print(peak_gefunden[i]);
-        Serial.print(";");
-        Serial.print(q_buffer[i]);
-        Serial.print(";");
-        Serial.print(peak_buffer[0]);
-        Serial.print(";");
-        Serial.print(peak_buffer[1]);
-        Serial.print(";");
-        Serial.print(T);
-        Serial.print(";");
-        Serial.println(BPM);
-      }
+void peakdetection_and_BPM()
+{
+int peak_buffer[2] = {0,0}; //Ort des Peaks
+int peak_count = 0; // Zähler für Anzahl der Peaks
+
+for (int p = 0; p < BUFFERSIZE && peak_count <= 1; p++) //wenn 2 Peaks gefunden oder Buffer vorbei hört es auf
+{
+  long absolute = abs(q_buffer[p]); 
+
+      if (absolute > QTHRESHOLD) //Vergleich mit Schwellenwert
+      {
+        peak_buffer[peak_count] = p;
+        peak_count ++;
+        p = p + 8; //Refraktärzeit, um Peak nicht doppelt zu erkennen
+      } }
+
+float T =  (((timestamp - last_timestamp) * (peak_buffer[1]-peak_buffer[0])) / BUFFERSIZE) ; //Periodendauer zwischen zwei Herzschlägen berechnen
+
+if (T != 0)
+{     BPM = 60000.0  / T; //Beats per minute berechnen
 }
+
+if (central.connected()) {  // ---- Bluetooth -----------------
+        BPM_blue.writeValue(BPM);
+        battery.writeValue(ladestand);
+      }
+  
+   timestamp = millis(); //Zeitmessung, wie lange füllen des Buffers wieder starten
+}
+
+
+//-----------Messwertausgabe zum Debuggen-------------------
+//for (int i = 0; i < BUFFERSIZE; i++)  //Messwertausgabe
+//      {
+//        Serial.print(data_buffer[i]); Serial.print(";"); Serial.print(derivation_buffer[i]); Serial.print(";"); 
+//        Serial.print(q_buffer[i]); Serial.print(";"); Serial.print(peak_buffer[0]); Serial.print(";"); 
+//        Serial.print(peak_buffer[1]); Serial.print(";"); Serial.print(T); Serial.print(";"); Serial.println(BPM);
+//      }
