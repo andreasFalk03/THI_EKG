@@ -35,6 +35,7 @@ BLEService bleService("4a30d5ac-1d36-11ef-9262-0242ac120002");  // Bluetooth® L
 // Bluetooth® Low Energy LED Switch Characteristic - custom 128-bit UUID, read and writable by central
 BLEFloatCharacteristic Signal(" 62045d8e-1d36-11ef-9262-0242ac120002", BLERead | BLENotify);
 BLEFloatCharacteristic BPM_blue("8a405d98-1d36-11ef-9262-0242ac120002", BLERead | BLENotify);
+BLEIntCharacteristic battery("363a2846-1dc7-11ef-9262-0242ac120002", BLERead | BLENotify);
 // ---------------------------------
 
 int data_buffer[BUFFERSIZE];
@@ -46,7 +47,7 @@ unsigned int timestamp = 0;
 unsigned int last_timestamp = 0;
 
 unsigned long previousMillis = 0;
-
+int ladestand = 0;
 float BPM = 0.0;
 int z = 0;
 
@@ -76,6 +77,7 @@ void setup() {
   // add the characteristic to the service
   bleService.addCharacteristic(Signal);
   bleService.addCharacteristic(BPM_blue);
+  bleService.addCharacteristic(battery);
 
   // add service
   BLE.addService(bleService);
@@ -92,11 +94,9 @@ void setup() {
 void loop() {
 
   BLEDevice central = BLE.central();  //Bluetooth
-
+  ladestand = pwr_mgmt.percent();
   unsigned long currentMillis = millis();
-  if(pwr_mgmt.percent()< 20){
-     digitalWrite(LEDR,LOW);
-  digitalWrite(LEDB,HIGH);
+  if (i = 1000){
   digitalWrite(LEDG,HIGH);
   }
   else{ digitalWrite(LEDB,LOW);
@@ -106,7 +106,8 @@ void loop() {
   if (digitalRead(STAT) == HIGH){
     digitalWrite(LEDB,HIGH);
   digitalWrite(LEDR,LOW);
-  digitalWrite(LEDG,HIGH);}
+  digitalWrite(LEDG,HIGH);}}
+  else{i++;}
   
   if (central) {
     if (currentMillis - previousMillis >= INTERVAL)  //Sampleinterval einstellen
@@ -161,6 +162,7 @@ void loop() {
 
       if (central.connected()) {  // ---- Bluetooth -----------------
         BPM_blue.writeValue(BPM);
+        battery.writeValue(ladestand);
       }
 
       for (int i = 0; i < BUFFERSIZE; i++)  //Messwertausgabe
