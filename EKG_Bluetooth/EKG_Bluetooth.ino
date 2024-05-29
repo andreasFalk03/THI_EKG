@@ -42,7 +42,6 @@ int data_buffer[BUFFERSIZE];
 int derivation_buffer[BUFFERSIZE];
 long q_buffer[BUFFERSIZE];
 
-
 unsigned int timestamp = 0;
 unsigned int last_timestamp = 0;
 
@@ -106,7 +105,7 @@ void loop() {
   if (digitalRead(STAT) == HIGH){
     digitalWrite(LEDB,HIGH);
   digitalWrite(LEDR,LOW);
-  digitalWrite(LEDG,HIGH);}}
+  digitalWrite(LEDG,HIGH);}
   else{i++;}
   
   if (central) {
@@ -129,7 +128,6 @@ void loop() {
       peakdetection_and_BPM(); //Peaks detektieren und BPM berechnen
 
     }  //if Ringbuffer voll
-  }
 }  //loop
 
 
