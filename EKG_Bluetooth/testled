@@ -98,12 +98,6 @@ digitalWrite(LEDB, HIGH);
   // start advertising
   BLE.advertise();
   // ---------------------------------
-
-
-  //LED
-  pinMode(15, output);
-    pinMode(16, output);
-      pinMode(24, output);
 }
 
 void loop() {
@@ -149,7 +143,23 @@ void loop() {
 
        timestamp = millis(); //Zeitmessung, wie lange füllen des Buffers wieder starten
     }  //if Ringbuffer voll
+   if (ladestand<20 && ladestand >0){
+  digitalWrite(LEDR, LOW);
+   digitalWrite(LEDG, HIGH);
+    digitalWrite(LEDB, HIGH);
+}
+ if(ladestand<40 && ladestand> 19){
+  digitalWrite(LEDR, LOW);
+   digitalWrite(LEDG, LOW);
+    digitalWrite(LEDB, HIGH);
+} 
+if (ladestand<100 ){
+ digitalWrite(LEDR, HIGH);
+   digitalWrite(LEDG, HIGH);
+    digitalWrite(LEDB, LOW);
+    }
 } //if central
+
 }//loop
 
 
@@ -196,10 +206,5 @@ if (T != 0)
 //        Serial.print(q_buffer[i]); Serial.print(";"); Serial.print(peak_buffer[0]); Serial.print(";"); 
 //        Serial.print(peak_buffer[1]); Serial.print(";"); Serial.print(T); Serial.print(";"); Serial.println(BPM);
 //      }
-//ladestand mit led anzeigen
-if (ladestand<100){
-  digitalWrite(15, LOW);
-   digitalWrite(15, HIGH);
-    digitalWrite(15, HIGH);
-}
-}
+
+
