@@ -1,5 +1,6 @@
 #define BUFFERSIZE 300  //Anzahl Messwerte für BPM Berechnung
 #define INTERVAL 10     //Sample Interval
+#define BATTERY_INTERVAL 60000
 #define QFAKTORA 100    //Verstärkungsfaktor
 #define QFAKTORB 300
 #define QTHRESHOLD 1000  //Schwelle für Peakdetektion
@@ -64,6 +65,11 @@ void setup() {
   pinMode(LEDB, OUTPUT);
   pinMode(STAT,INPUT);
   digitalWrite(GPIO8, HIGH);
+  
+digitalWrite(LEDR, HIGH);
+digitalWrite(LEDG, HIGH);
+digitalWrite(LEDB, HIGH);  
+
    Wire.begin();
    pwr_mgmt.attatch(Wire);
   // ---- Bluetooth -----------------
@@ -101,7 +107,7 @@ void loop() {
 
   if (central) {
 
-  if(battery_counter >= 6000)
+  if(battery_counter >= 1000)
   {          
     ladestand = pwr_mgmt.percent();
     ladestand = float(ladestand) * 1.0; 
