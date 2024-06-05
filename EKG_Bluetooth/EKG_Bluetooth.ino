@@ -1,6 +1,5 @@
 #define BUFFERSIZE 300  //Anzahl Messwerte für BPM Berechnung
 #define INTERVAL 10     //Sample Interval
-#define BATTERY_INTERVAL 60000
 #define QFAKTORA 100    //Verstärkungsfaktor
 #define QFAKTORB 300
 #define QTHRESHOLD 1000  //Schwelle für Peakdetektion
@@ -102,7 +101,7 @@ void loop() {
 
   if (central) {
 
-  if(battery_counter >= 1000)
+  if(battery_counter >= 6000)
   {          
     ladestand = pwr_mgmt.percent();
     ladestand = float(ladestand) * 1.0; 
