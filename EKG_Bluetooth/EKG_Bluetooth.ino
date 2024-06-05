@@ -1,5 +1,6 @@
 #define BUFFERSIZE 300  //Anzahl Messwerte für BPM Berechnung
 #define INTERVAL 10     //Sample Interval
+#define BATTERY_INTERVAL 60000
 #define QFAKTORA 100    //Verstärkungsfaktor
 #define QFAKTORB 300
 #define QTHRESHOLD 1000  //Schwelle für Peakdetektion
@@ -35,7 +36,7 @@ BLEService bleService("4a30d5ac-1d36-11ef-9262-0242ac120002");  // Bluetooth® L
 // Bluetooth® Low Energy LED Switch Characteristic - custom 128-bit UUID, read and writable by central
 BLEFloatCharacteristic Signal(" 62045d8e-1d36-11ef-9262-0242ac120002", BLERead | BLENotify);
 BLEFloatCharacteristic BPM_blue("8a405d98-1d36-11ef-9262-0242ac120002", BLERead | BLENotify);
-BLEIntCharacteristic battery("363a2846-1dc7-11ef-9262-0242ac120002", BLERead | BLENotify);
+BLEFloatCharacteristic battery("363a2846-1dc7-11ef-9262-0242ac120002", BLERead | BLENotify);
 // ---------------------------------
 
 int data_buffer[BUFFERSIZE];
@@ -46,9 +47,13 @@ unsigned int timestamp = 0;
 unsigned int last_timestamp = 0;
 
 unsigned long previousMillis = 0;
-int ladestand = 0;
+
+float ladestand = 0;
+
 float BPM = 0.0;
 int z = 0;
+
+int battery_counter = 0;
 
 void setup() {
 
@@ -93,22 +98,20 @@ void setup() {
 void loop() {
 
   BLEDevice central = BLE.central();  //Bluetooth
-  ladestand = pwr_mgmt.percent();
   unsigned long currentMillis = millis();
-  if (i = 1000){
-  digitalWrite(LEDG,HIGH);
-  }
-  else{ digitalWrite(LEDB,LOW);
-  digitalWrite(LEDR,HIGH);
-  digitalWrite(LEDG,HIGH);}
 
-  if (digitalRead(STAT) == HIGH){
-    digitalWrite(LEDB,HIGH);
-  digitalWrite(LEDR,LOW);
-  digitalWrite(LEDG,HIGH);}
-  else{i++;}
-  
   if (central) {
+
+  if(battery_counter >= 1000)
+  {          
+    ladestand = pwr_mgmt.percent();
+    ladestand = float(ladestand) * 1.0; 
+    if (central.connected()) {  // ---- Bluetooth -----------------
+        battery.writeValue(ladestand);
+      }
+      battery_counter = 0;
+  }
+    
     if (currentMillis - previousMillis >= INTERVAL)  //Sampleintervall einhalten
     {
       previousMillis = currentMillis;
@@ -116,7 +119,8 @@ void loop() {
       z = (z + 1) % BUFFERSIZE;  //Ringbuffer
             if (central.connected()) {  // ---- Bluetooth -----------------
                 Signal.writeValue(data_buffer[z]); }
-    }}
+      battery_counter ++;
+    }
 
     if (z == BUFFERSIZE - 1)  //Wenn Ringbuffer voll
     {
@@ -127,8 +131,15 @@ void loop() {
 
       peakdetection_and_BPM(); //Peaks detektieren und BPM berechnen
 
+      if (central.connected()) {  // ---- Bluetooth -----------------
+        BPM_blue.writeValue(BPM);
+        battery.writeValue(ladestand);
+      }
+
+       timestamp = millis(); //Zeitmessung, wie lange füllen des Buffers wieder starten
     }  //if Ringbuffer voll
-}  //loop
+} //if central
+}//loop
 
 
 void signalprocessing() {
@@ -164,13 +175,6 @@ float T =  (((timestamp - last_timestamp) * (peak_buffer[1]-peak_buffer[0])) / B
 if (T != 0)
 {     BPM = 60000.0  / T; //Beats per minute berechnen
 }
-
-if (central.connected()) {  // ---- Bluetooth -----------------
-        BPM_blue.writeValue(BPM);
-        battery.writeValue(ladestand);
-      }
-  
-   timestamp = millis(); //Zeitmessung, wie lange füllen des Buffers wieder starten
 }
 
 
